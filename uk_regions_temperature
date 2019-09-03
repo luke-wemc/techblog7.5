@@ -1,0 +1,56 @@
+# import packages
+import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy.ndimage.filters import gaussian_filter1d
+import matplotlib.colors
+
+# skip 52 rows to avoid reading in metadata
+df = pd.read_csv('H_ERA5_ECMW_T639_TA-_0002m_Euro_NUT2_S197901010000_E201906302300_INS_MAP_01h_NA-_noc_org_NA_NA---_NA---_NA---.csv', 
+                 skiprows=52,index_col=0,parse_dates=True)
+                 
+# function to get celcius from kelvin
+def ktoc(x):
+    # if x is a string,
+    if type(x) is str:
+        # ignore
+        return x
+    # but, if not, return it subtracted by 273.15
+    elif x:
+        return x - 273.15
+    # and leave everything else
+    else:
+        return
+
+# applymap to entire dataframe
+df2 = df.applymap(ktoc)
+
+# Create lists for uk regions
+uk_df = (df2.UKC1, df2.UKC2, df2.UKD1, df2.UKD3, 
+         df2.UKD4, df2.UKD6, df2.UKD7, df2.UKE1, 
+         df2.UKE2, df2.UKE3, df2.UKE4, df2.UKF1, 
+         df2.UKF2, df2.UKF3, df2.UKG1, df2.UKG2, 
+         df2.UKG3, df2.UKH1, df2.UKH2, df2.UKH3, 
+         df2.UKI3, df2.UKJ1, df2.UKJ2, df2.UKJ3, 
+         df2.UKJ4, df2.UKK1, df2.UKK2, df2.UKK3, 
+         df2.UKK4, df2.UKL1, df2.UKL2, df2.UKM5, 
+         df2.UKM6, df2.UKM7, df2.UKM8, df2.UKM9, 
+         df2.UKN0)
+         
+# wrap plotting inside style context for nice looking plot theme
+with plt.style.context('Solarize_Light2'):
+    
+    # smooth plots with gaussian filter, set sigma for amount of smoothing. The higher the sigma, the longer it will take to render plot
+    for ud in uk_df: 
+        s = gaussian_filter1d(ud, sigma=100000)
+        plt.plot(df.index, s ,linestyle='-')
+    
+    # setup plot with labels and title
+    fig = plt.gcf()
+    fig.set_size_inches(18.5, 10.5)
+    plt.xlabel('Year', fontsize=14)
+    plt.ylabel('Celcius', fontsize=14)
+    fig.suptitle('Area averaged ERA5 temperature data, for regions in the United Kingdom.', fontsize=16)    
+
+# display plot
+plt.show()
